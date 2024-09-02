@@ -125,34 +125,49 @@ public class Parser {
 	}
 
 	public void CmdIf() {
+	    	//Verifica 'se'
 	    	token = scanner.nextToken();
 	    	if (token.getType() != Token.PON || !token.getStr().equals("(")) {
 	        	throw new SyntaxException("( esperado após 'se', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	    	}
-	    
-	    	Expr(); // Processa a expressão no 'if'
-	    
-	    	if (token.getType() != Token.OP || !isRelationalOperator(token.getStr())) {
-	        	throw new SyntaxException("Operador relacional esperado após expressão, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+	
+	    	//Analisa a expressão
+	    	Expr();
+	
+	    	if (!isRelationalOperator(token.getStr())) {
+	       		throw new SyntaxException("Operador relacional esperado após expressão, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	    	}
-	    
-	    	Expr(); // Processa a segunda expressão no 'if'
-	    
 	    	token = scanner.nextToken();
+	    	Expr();
+	
+	    	//Verifica 'entao'
 	    	if (token.getType() != Token.RW || !token.getStr().equals("entao")) {
-	        	throw new SyntaxException("Palavra reservada 'entao' esperada após expressão, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+	        	throw new SyntaxException("Palavra reservada 'entao' esperada, encontrei " + token.getStr()  + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	    	}
-	    
+	
+	    	// Verifica o início do bloco de código
+	    	token = scanner.nextToken();
 	    	if (token.getType() != Token.PON || !token.getStr().equals("{")) {
 	        	throw new SyntaxException("{ esperado após 'entao', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	    	}
-		
-	    	do {
-	        	Cmd(); // Processa comandos dentro do bloco 'if'
-	    	} while (token != null && token.getType() != Token.PON && !token.getStr().equals("}"));
-	    
-	    	if (token == null || token.getType() != Token.PON || !token.getStr().equals("}")) {
-	        	throw new SyntaxException("} esperado após comandos do 'if', encontrei " + (token != null ? token.getStr() : "EOF") + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+	
+	    	// Analisa o bloco de código do if
+	    	Bloco();
+	
+	    	// Verifica 'senao'
+	    	if (token.getType() == Token.RW && token.getStr().equals("senao")) {
+	        	token = scanner.nextToken();
+	        	if (token.getType() != Token.PON || !token.getStr().equals("{")) {
+	            		throw new SyntaxException("{ esperado após 'senao', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+	        	}
+	
+	        	// Analisa o bloco de código do else
+	        	Bloco();
+	    	}
+	
+	    	// Verifica o fim do bloco de código
+	    	if ( token.getType() != Token.PON || !token.getStr().equals("}")) {
+	        	throw new SyntaxException("} esperado após bloco 'se' ou 'senao', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	    	}
 	}
 	
@@ -170,8 +185,8 @@ public class Parser {
     		Expr(); // Processa a expressão à direita da atribuição
     
     		token = scanner.nextToken();
-    		if (token == null || token.getType() != Token.PON) {
-        		throw new SyntaxException("; esperado após atribuição, encontrei " + (token != null ? token.getStr() : "EOF") + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+    		if (token.getType() != Token.PON) {
+        		throw new SyntaxException("; esperado após atribuição, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
     		}
 	}
 
