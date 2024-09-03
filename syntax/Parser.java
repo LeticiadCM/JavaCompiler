@@ -40,7 +40,7 @@ public class Parser {
 
 		while (true) {
             		token = scanner.nextToken();
-            		if (token != null && token.getType() == Token.PON && token.getStr().equals(",")) {
+            		if (token.getType() == Token.PON && token.getStr().equals(",")) {
                 		token = scanner.nextToken();
                 		if (token.getType() != Token.ID) {
                     			throw new SyntaxException("Identificador esperado após ',' na declaração, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
@@ -61,7 +61,7 @@ public class Parser {
             		if (token.getType() != Token.PON || !token.getStr().equals(".")) {
                 		throw new SyntaxException("Ponto '.' esperado após comando, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
             		}
-        	} while (token != null && (token.getType() == Token.ID || token.getType() == Token.RW));
+        	} while (token.getType() == Token.ID || token.getType() == Token.RW);
     	}
 	
     	public void Cmd() {
@@ -192,7 +192,7 @@ public class Parser {
 
 	public void Expr() {
     		Termo();
-    		while (token != null && (token.getType() == Token.OP && (token.getStr().equals("+") || token.getStr().equals("-"))) ) {
+    		while (token.getType() == Token.OP && (token.getStr().equals("+") || token.getStr().equals("-")) ) {
         		token = scanner.nextToken();
         		Termo();
     		}
@@ -200,7 +200,7 @@ public class Parser {
 
 	public void Termo() {
     		Fator();
-    		while (token != null && (token.getType() == Token.OP && (token.getStr().equals("*") || token.getStr().equals("/"))) ) {
+    		while (token.getType() == Token.OP && (token.getStr().equals("*") || token.getStr().equals("/")) ) {
         		token = scanner.nextToken();
         		Fator();
     		}
