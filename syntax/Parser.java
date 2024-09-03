@@ -6,6 +6,12 @@ import br.edu.ufabc.compiler.lexical.Token;
 public class Parser {
 	private Analyzer scanner;
 	private Token    token;
+
+	private void checkTokenNull() {
+    		if (token == null) {
+        		throw new SyntaxException("Token inesperado EOF na linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+    		}
+	}
 	
 	public Parser(Analyzer scanner) {
 		this.scanner = scanner;
@@ -13,14 +19,24 @@ public class Parser {
 	
 	public void PROG() {
 		token = scanner.nextToken();
+		checkTokenNull();
+		
 		if (token.getType() != Token.RW || !token.getStr().equals("PROGRAM")) {
 			throw new SyntaxException("Palavra reservada PROGRAM esperada, encontrei "+token.getStr()+ " linha "+scanner.getLine()+" coluna "+scanner.getColumn())	;		
 		}
+
+		Declara();
+		Bloco();
+		
 		token = scanner.nextToken();
+		checkTokenNull();
+		
 		if (token.getType() != Token.ID) {
 			throw new SyntaxException("Identificador de Programa esperado, encontrei "+token.getStr()+ " linha "+scanner.getLine()+" coluna "+scanner.getColumn());
 		}
+		
 		token = scanner.nextToken();
+		checkTokenNull();
 		if (token.getType() != Token.PON) {
 			throw new SyntaxException("; esperado, encontrei "+token.getStr() + " linha "+scanner.getLine()+" coluna "+scanner.getColumn());
 		}
@@ -29,19 +45,26 @@ public class Parser {
 	
 	public void Declara() {
 		token = scanner.nextToken();
+		checkTokenNull();
+		
 		if (token.getType() != Token.RW || !token.getStr().equals("declare")) {
             		throw new SyntaxException("Palavra reservada 'declare' esperada, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
         	}
 
        		token = scanner.nextToken();
+		checkTokenNull();
+		
        		if (token.getType() != Token.ID) {
             		throw new SyntaxException("Identificador esperado após 'declare', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
         	}
 
 		while (true) {
             		token = scanner.nextToken();
+			checkTokenNull();
+			
             		if (token.getType() == Token.PON && token.getStr().equals(",")) {
                 		token = scanner.nextToken();
+				checkTokenNull();
                 		if (token.getType() != Token.ID) {
                     			throw new SyntaxException("Identificador esperado após ',' na declaração, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
                 		}
@@ -58,6 +81,7 @@ public class Parser {
         	do {
             		Cmd();
             		token = scanner.nextToken();
+			checkTokenNull();
             		if (token.getType() != Token.PON || !token.getStr().equals(".")) {
                 		throw new SyntaxException("Ponto '.' esperado após comando, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
             		}
@@ -88,34 +112,48 @@ public class Parser {
 
     	public void CmdLeitura() {
 	        token = scanner.nextToken();
+		checkTokenNull();
+		
 	        if (!token.getStr().equals("(")) {
 	            throw new SyntaxException("'(' esperado após 'leia', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	        }
 
 	        token = scanner.nextToken();
+		checkTokenNull();
+		
 	        if (token.getType() != Token.ID) {
 	            throw new SyntaxException("Identificador esperado após '(', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	        }
 
 	        token = scanner.nextToken();
+		checkTokenNull();
+		
 	        if (token == !token.getStr().equals(")")) {
 	            throw new SyntaxException("')' esperado após identificador, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	        }
 
         	token = scanner.nextToken();
+		checkTokenNull();
     	}
 
 	public void CmdEscrita() {
 		token = scanner.nextToken();
+		checkTokenNull();
+		
 	    	if (token.getType() != Token.PON || !token.getStr().equals("(")) {
 			throw new SyntaxException("( esperado após 'escreva', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
-		}	    
+		}	
+		
 		token = scanner.nextToken();
+		checkTokenNull();
+		
 		if (token == null) {
 			throw new SyntaxException("Texto ou identificador esperado após '(', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 		}
 		if (token.getType() == Token.ID || token.getType() == Token.RW) {
 			token = scanner.nextToken();
+			checkTokenNull();
+			
 			if (token.getType() != Token.PON || !token.getStr().equals(")")) {
 		            throw new SyntaxException(") esperado após texto ou identificador, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 		        }
@@ -127,6 +165,8 @@ public class Parser {
 	public void CmdIf() {
 	    	//Verifica 'se'
 	    	token = scanner.nextToken();
+		checkTokenNull();
+		
 	    	if (token.getType() != Token.PON || !token.getStr().equals("(")) {
 	        	throw new SyntaxException("( esperado após 'se', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	    	}
@@ -138,6 +178,7 @@ public class Parser {
 	       		throw new SyntaxException("Operador relacional esperado após expressão, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	    	}
 	    	token = scanner.nextToken();
+		checkTokenNull();
 	    	Expr();
 	
 	    	//Verifica 'entao'
@@ -147,6 +188,8 @@ public class Parser {
 	
 	    	// Verifica o início do bloco de código
 	    	token = scanner.nextToken();
+		checkTokenNull();
+		
 	    	if (token.getType() != Token.PON || !token.getStr().equals("{")) {
 	        	throw new SyntaxException("{ esperado após 'entao', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	    	}
@@ -157,6 +200,8 @@ public class Parser {
 	    	// Verifica 'senao'
 	    	if (token.getType() == Token.RW && token.getStr().equals("senao")) {
 	        	token = scanner.nextToken();
+			checkTokenNull();
+			
 	        	if (token.getType() != Token.PON || !token.getStr().equals("{")) {
 	            		throw new SyntaxException("{ esperado após 'senao', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	        	}
@@ -178,6 +223,8 @@ public class Parser {
     
     		String id = token.getStr();
     		token = scanner.nextToken();
+		checkTokenNull();
+		
     		if (token.getType() != Token.ATT) {
         		throw new SyntaxException(":= esperado após identificador, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
     		}
@@ -185,6 +232,8 @@ public class Parser {
     		Expr(); // Processa a expressão à direita da atribuição
     
     		token = scanner.nextToken();
+		checkTokenNull();
+		
     		if (token.getType() != Token.PON) {
         		throw new SyntaxException("; esperado após atribuição, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
     		}
@@ -194,6 +243,7 @@ public class Parser {
     		Termo();
     		while (token.getType() == Token.OP && (token.getStr().equals("+") || token.getStr().equals("-")) ) {
         		token = scanner.nextToken();
+			checkTokenNull();
         		Termo();
     		}
 	}
@@ -202,6 +252,7 @@ public class Parser {
     		Fator();
     		while (token.getType() == Token.OP && (token.getStr().equals("*") || token.getStr().equals("/")) ) {
         		token = scanner.nextToken();
+			checkTokenNull();
         		Fator();
     		}
 	}
@@ -213,13 +264,18 @@ public class Parser {
 
     		if (token.getType() == Token.NUM || token.getType() == Token.ID) {
         		token = scanner.nextToken();
+			checkTokenNull();
+			
     		} else if (token.getType() == Token.PON && token.getStr().equals("(")) {
         		token = scanner.nextToken();
+			checkTokenNull();
+			
         		Expr();
         		if (token.getType() != Token.PON || !token.getStr().equals(")")) {
             			throw new SyntaxException(") esperado após expressão, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
         		}
         		token = scanner.nextToken();
+			checkTokenNull();
     		} else {
         		throw new SyntaxException("Número, identificador ou expressão entre parênteses esperado, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
     		}
