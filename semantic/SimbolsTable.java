@@ -3,37 +3,37 @@ package br.edu.ufabc.compiler.semantic;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TabelaDeSimbolos {
-    private Map<String, Simbolo> tabela;
+public class SimbolsTable {
+    private Map<String, Simbol> table;
 
     public TabelaDeSimbolos() {
-        tabela = new HashMap<>();
+        table = new HashMap<>();
     }
 
     //Adiciona símbolo à tabela
-    public void adicionarSimbolo(String nome, Simbolo simbolo) {
-        tabela.put(nome, simbolo);
+    public void addSimbol(String name, Simbol simbol) {
+        tabela.put(name, simbol);
     }
 
     //Verifica se símbolo existe na tabela
-    public boolean existeSimbolo(String nome) {
-        return tabela.containsKey(nome);
+    public boolean checkSimbol(String name) {
+        return table.containsKey(name);
     }
 
     //Retorna símbolo associado a um nome
-    public Simbolo getSimbolo(String nome) {
-        return tabela.get(nome);
+    public Simbol getSimbol(String name) {
+        return table.get(name);
     }
 
     //Remove símbolo
-    public void removerSimbolo(String nome) {
-        tabela.remove(nome);
+    public void removeSimbol(String name) {
+        table.remove(name);
     }
 
     //Avisos de variáveis não utilizadas ou não inicializadas
-    public void verificarAvisos() {
-        for (Simbolo simbolo : tabela.values()) {
-            if (!simbolo.isUtilizado()) {
+    public void checkWarnings() {
+        for (Simbol simbol : table.values()) {
+            if (!simbol.isUtilizado()) {
                 System.out.println("Aviso: Variável '" + simbolo.getNome() + "' declarada, mas não utilizada.");
             }
             if (!simbolo.isInicializado()) {
