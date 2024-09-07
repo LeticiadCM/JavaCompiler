@@ -54,9 +54,22 @@ public class Parser {
        		token = scanner.nextToken();
 		checkTokenNull();
 		
+		//Capturando o tipo de info
+		String tipo = token.getStr();
+
+		if (!tipo.equals("int") && !tipo.equals("real") && !tipo.equals("string")) {
+        		throw new SyntaxException("Tipo de dado inválido, encontrei " + tipo + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+    		}
+
+		token = scanner.nextToken();
+		checkTokenNull();
+		
        		if (token.getType() != Token.ID) {
-            		throw new SyntaxException("Identificador esperado após 'declare', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+            		throw new SyntaxException("Identificador esperado após 'tipo', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
         	}
+
+		//Armazenar a variável e o tipo na tabela de símbolos
+    		tabelaSimbolos.adicionar(token.getStr(), tipo);
 
 		while (true) {
             		token = scanner.nextToken();
@@ -68,6 +81,7 @@ public class Parser {
                 		if (token.getType() != Token.ID) {
                     			throw new SyntaxException("Identificador esperado após ',' na declaração, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
                 		}
+				tabelaSimbolos.adicionar(token.getStr(), tipo);
             		} else {
                 		break;
             		}
@@ -139,6 +153,11 @@ public class Parser {
 	public void CmdEscrita() {
 		token = scanner.nextToken();
 		checkTokenNull();
+
+		boolean novaLinha = token.getStr().equals("println");
+
+		token = scanner.nextToken();
+		checkTokenNull();
 		
 	    	if (token.getType() != Token.PON || !token.getStr().equals("(")) {
 			throw new SyntaxException("( esperado após 'escreva', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
@@ -160,6 +179,12 @@ public class Parser {
 		} else {
 			throw new SyntaxException("Texto ou identificador esperado após '(', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 		}
+
+		if (novaLinha) {
+        		System.out.println();
+    		} else {
+        		System.out.print();
+    		}
 	}
 
 	public void CmdIfElse() {
@@ -232,6 +257,47 @@ public class Parser {
             		throw new SyntaxException("'}' esperado ao final de 'enquanto', encontrei " + token.getStr() + " linha " + scanner
 		}
 	}
+
+	public void CmdFor() {
+    		token = scanner.nextToken();
+    		checkTokenNull();
+    		if (token.getType() != Token.PON || !token.getStr().equals("(")) {
+        		throw new SyntaxException("'(' esperado após 'for', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+    		}
+
+    		CmdExpr();  // Atribuição inicial
+    		if (!token.getStr().equals(";")) {
+        		throw new SyntaxException("';' esperado após atribuição, encontrei " + token.getStr());
+    		}
+
+    		Expr();  // Condição de continuação
+    		if (!token.getStr().equals(";")) {
+        		throw new SyntaxException("';' esperado após expressão, encontrei " + token.getStr());
+    		}
+
+    		CmdExpr();  // Incremento ou decremento
+    		if (!token.getStr().equals(")")) {
+        		throw new SyntaxException("')' esperado, encontrei " + token.getStr());
+    		}
+
+    		Bloco();
+	}
+
+	public void CmdRepeat() {
+    		token = scanner.nextToken();
+    		checkTokenNull();
+
+    		Bloco();
+
+    		token = scanner.nextToken();
+    		checkTokenNull();
+		
+    		if (token.getType() != Token.RW || !token.getStr().equals("até")) {
+        		throw new SyntaxException("'até' esperado após bloco, encontrei " + token.getStr());
+    		}
+		
+    		Expr();  // Condição de saída
+	}
 	
 	public void CmdExpr() {
     		if (token.getType() != Token.ID) {
@@ -239,15 +305,23 @@ public class Parser {
     		}
     
     		String id = token.getStr();
+		// Obter o tipo da variável
+		String tipoVar = tabelaSimbolos.getTipo(id);
+		
     		token = scanner.nextToken();
 		checkTokenNull();
 		
     		if (token.getType() != Token.ATT) {
         		throw new SyntaxException(":= esperado após identificador, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
     		}
+		//Processa a expressão e retorna seu tipo
+		String tipoExpr = Expr(); 
     
-    		Expr(); // Processa a expressão à direita da atribuição
-    
+		//Verifica compatibilidade de tipos
+    		if (!tipoVar.equals(tipoExpr)) {
+        		throw new SyntaxException("Tipo incompatível. Esperado " + tipoVariavel + ", encontrado " + tipoExpr);
+    		}
+		
     		token = scanner.nextToken();
 		checkTokenNull();
 		
