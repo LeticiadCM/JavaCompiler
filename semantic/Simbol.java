@@ -1,3 +1,5 @@
+package br.edu.ufabc.compiler.semantic;
+
 public class Simbolo {
   
     private String nome;
