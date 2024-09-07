@@ -1,11 +1,15 @@
-package br.edu.ufabc.compiler.syntax;
+package syntax;
 
-import br.edu.ufabc.compiler.lexical.Analyzer;
-import br.edu.ufabc.compiler.lexical.Token;
+import lexical.Analyzer;
+import lexical.Token;
+import semantic.Simbol;
+import semantic.SimbolsTable;
 
 public class Parser {
 	private Analyzer scanner;
-	private Token    token;
+	private Token token;
+	private SimbolsTable simbolstable;
+	private Simbol simbol
 
 	private void checkTokenNull() {
     		if (token == null) {
@@ -69,7 +73,7 @@ public class Parser {
         	}
 
 		//Armazenar a variável e o tipo na tabela de símbolos
-    		tabelaSimbolos.adicionar(token.getStr(), tipo);
+    		simbolstable.addSimbol(token.getStr(), tipo);
 
 		while (true) {
             		token = scanner.nextToken();
@@ -81,7 +85,7 @@ public class Parser {
                 		if (token.getType() != Token.ID) {
                     			throw new SyntaxException("Identificador esperado após ',' na declaração, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
                 		}
-				tabelaSimbolos.adicionar(token.getStr(), tipo);
+				simbolstable.addSimbol(token.getStr(), tipo);
             		} else {
                 		break;
             		}
@@ -306,12 +310,12 @@ public class Parser {
     
     		String id = token.getStr();
 
-		if (!tabelaSimbolos.contains(id)) {
+		if (!simbolstable.checkSimbol(id)) {
         		throw new SyntaxException("Variável '" + id + "' usada, mas não foi declarada.");
     		}
 
     		//Marca a variável como usada
-    		tabelaSimbolos.marcarComoUsada(id);
+    		simbol.markAsUsed(id);
 		
     		token = scanner.nextToken();
 		checkTokenNull();
@@ -323,13 +327,13 @@ public class Parser {
 		String tipoExpr = Expr(); 
     
 		//Verifica compatibilidade de tipos
-		String tipoVar = tabelaSimbolos.getTipo(id);
+		String tipoVar = simbol.getType(id);
     		if (!tipoVar.equals(tipoExpr)) {
         		throw new SyntaxException("Tipo incompatível. Esperado " + tipoVariavel + ", encontrado " + tipoExpr);
     		}
 
 		//Marca a variável como inicializada
-    		tabelaSimbolos.marcarComoInicializada(id);
+    		simbol.markAsInicialized(id);
 		
     		token = scanner.nextToken();
 		checkTokenNull();
@@ -346,12 +350,12 @@ public class Parser {
     		if (token.getType() == Token.ID) {
         	String id = token.getStr();
 
-        		if (!tabelaSimbolos.foiInicializada(id)) {
+        		if (!simbol.wasInitialized(id)) {
             			System.out.println("Warning: Variável '" + id + "' usada sem valor inicial.");
         		}
 
-        		tabelaSimbolos.marcarComoUsada(id);
-        		return tabelaSimbolos.getTipo(id);
+        		simbol.markAsUsed(id);
+        		return simbol.getType(id);
 		}
     		Termo();
     		while (token.getType() == Token.OP && (token.getStr().equals("+") || token.getStr().equals("-")) ) {
@@ -416,8 +420,8 @@ public class Parser {
 	}
 
 	public void VariaveisNaoUtilizadas() {
-    		for (String id : tabelaSimbolos.getVariaveis()) {
-        		if (!tabelaSimbolos.foiUsada(id)) {
+    		for (String id : simbolstable.getSimbol()) {
+        		if (!simbol.wasUsed(id)) {
             			System.out.println("Warning: Variável '" + id + "' foi declarada, mas não foi utilizada.");
         		}
     		}
