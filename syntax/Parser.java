@@ -305,8 +305,13 @@ public class Parser {
     		}
     
     		String id = token.getStr();
-		// Obter o tipo da variável
-		String tipoVar = tabelaSimbolos.getTipo(id);
+
+		if (!tabelaSimbolos.contains(id)) {
+        		throw new SyntaxException("Variável '" + id + "' usada, mas não foi declarada.");
+    		}
+
+    		//Marca a variável como usada
+    		tabelaSimbolos.marcarComoUsada(id);
 		
     		token = scanner.nextToken();
 		checkTokenNull();
@@ -318,9 +323,13 @@ public class Parser {
 		String tipoExpr = Expr(); 
     
 		//Verifica compatibilidade de tipos
+		String tipoVar = tabelaSimbolos.getTipo(id);
     		if (!tipoVar.equals(tipoExpr)) {
         		throw new SyntaxException("Tipo incompatível. Esperado " + tipoVariavel + ", encontrado " + tipoExpr);
     		}
+
+		//Marca a variável como inicializada
+    		tabelaSimbolos.marcarComoInicializada(id);
 		
     		token = scanner.nextToken();
 		checkTokenNull();
