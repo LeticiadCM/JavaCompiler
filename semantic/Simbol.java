@@ -1,36 +1,36 @@
-package br.edu.ufabc.compiler.semantic;
+package semantic;
 
-public class Simbolo {
+public class Simbol {
   
-    private String nome;
-    private String tipo;
-    private boolean inicializada;
-    private boolean usada;
+    private String name;
+    private String type;
+    private boolean initialized;
+    private boolean used;
 
-    public Simbolo(String nome, String tipo) {
-        this.nome = nome;
-        this.tipo = tipo;
-        this.inicializada = false;
-        this.usada = false;
+    public Simbol(String name, String type) {
+        this.name = name;
+        this.type = type;
+        this.initialized = false;
+        this.used = false;
     }
 
-    public String getTipo() {
-        return tipo;
+    public String getType() {
+        return type;
     }
 
-    public boolean foiInicializada() {
-        return inicializada;
+    public boolean wasInitialized() {
+        return initialized;
     }
 
-    public boolean foiUsada() {
-        return usada;
+    public boolean wasUsed() {
+        return used;
     }
 
-    public void marcarComoInicializada() {
-        this.inicializada = true;
+    public void markAsInicialized() {
+        this.initialized = true;
     }
 
-    public void marcarComoUsada() {
-        this.usada = true;
+    public void markAsUsed() {
+        this.used = true;
     }
 }
