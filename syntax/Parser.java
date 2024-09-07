@@ -340,6 +340,19 @@ public class Parser {
 	}
 
 	public void Expr() {
+		token = scanner.nextToken();
+    		checkTokenNull();
+
+    		if (token.getType() == Token.ID) {
+        	String id = token.getStr();
+
+        		if (!tabelaSimbolos.foiInicializada(id)) {
+            			System.out.println("Warning: Variável '" + id + "' usada sem valor inicial.");
+        		}
+
+        		tabelaSimbolos.marcarComoUsada(id);
+        		return tabelaSimbolos.getTipo(id);
+		}
     		Termo();
     		while (token.getType() == Token.OP && (token.getStr().equals("+") || token.getStr().equals("-")) ) {
         		token = scanner.nextToken();
@@ -400,6 +413,14 @@ public class Parser {
         		throw new SyntaxException("Identificador esperado, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
     		}
     		token = scanner.nextToken();
+	}
+
+	public void VariaveisNaoUtilizadas() {
+    		for (String id : tabelaSimbolos.getVariaveis()) {
+        		if (!tabelaSimbolos.foiUsada(id)) {
+            			System.out.println("Warning: Variável '" + id + "' foi declarada, mas não foi utilizada.");
+        		}
+    		}
 	}
 	
 }
