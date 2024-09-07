@@ -1,4 +1,4 @@
-package br.edu.ufabc.compiler.semantic;
+package semantic;
 
 import java.util.HashMap;
 import java.util.Map;
