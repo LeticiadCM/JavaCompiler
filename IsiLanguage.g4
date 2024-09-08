@@ -121,7 +121,7 @@ cmdEscrita  : 'escreva' AP
               FP PV { rightType = null;}
 			;			
 
-cmdSe		: 'se'  { stack.push(new ArrayList<Command>());
+cmdSe	    : 'se'  { stack.push(new ArrayList<Command>());
                       strExpr = "";
                       currentIfCommand = new IfCommand();
                     } 
@@ -146,7 +146,7 @@ cmdSe		: 'se'  { stack.push(new ArrayList<Command>());
                {
                	   stack.peek().add(currentIfCommand);
                }  			   
-			;
+	      ;
 
 cmdEnquanto : 'enquanto'  
                { 
@@ -185,7 +185,7 @@ cmdFacaEnquanto: 'faca'
                  }
                ;
 		
-cmdPara 	: 'para' AP 
+cmdPara      : 'para' AP 
               ID OP_AT expr  { String initialization = _input.LT(-3).getText() + ":=" + _input.LT(-1).getText(); }
               PV            
               expr OPREL expr  { String condition = _input.LT(-3).getText() + _input.LT(-2).getText() + _input.LT(-1).getText(); }
@@ -248,45 +248,45 @@ termo		: ID  { if (!isDeclared(_input.LT(-1).getText())) {
 			                }
 			            }
 			         }
-			;
+		;
 			
 exprl		: ( OP { strExpr += _input.LT(-1).getText(); } 
                 termo { strExpr += _input.LT(-1).getText(); } 
-              ) *
-			;	
+              	) *
+		;	
 			
-OP			: '+' | '-' | '*' | '/' 
-			;	
+OP		: '+' | '-' | '*' | '/' 
+		;	
 			
-OP_AT	    : ':='
-		    ;
+OP_AT	        : ':='
+		;
 		    
-OPREL       : '>' | '<' | '>=' | '<=' | '<>' | '=='
-			;		    			
+OPREL        	: '>' | '<' | '>=' | '<=' | '<>' | '=='
+		;		    			
 			
-ID			: [a-z] ( [a-z] | [A-Z] | [0-9] )*		
-			;
+ID		: [a-z] ( [a-z] | [A-Z] | [0-9] )*		
+		;
 			
-NUM			: [0-9]+ ('.' [0-9]+ )?
-			;			
+NUM		: [0-9]+ ('.' [0-9]+ )?
+		;			
 			
-VIRG		: ','
-			;
+VIRG	        : ','
+		;
 						
-PV			: ';'
-            ;			
+PV		: ';'
+                ;			
             
-AP			: '('
-			;            
+AP		: '('
+		;            
 						
-FP			: ')'
-			;
+FP		: ')'
+		;
 									
-DP			: ':'
-		    ;
+DP		: ':'
+	        ;
 		    
-TEXTO       : '"' ( [a-z] | [A-Z] | [0-9] | ',' | '.' | ' ' | '-' )* '"'
-			;		    
+TEXTO       	: '"' ( [a-z] | [A-Z] | [0-9] | ',' | '.' | ' ' | '-' )* '"'
+		;		    
 		    			
-WS			: (' ' | '\n' | '\r' | '\t' ) -> skip
-			;
+WS		: (' ' | '\n' | '\r' | '\t' ) -> skip
+		;
