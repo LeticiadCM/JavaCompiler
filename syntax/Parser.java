@@ -73,6 +73,7 @@ public class Parser {
         	}
 
 		//Armazenar a variável e o tipo na tabela de símbolos
+		Simbol simbol = new Simbol(token.getStr(), tipo);
     		simbolstable.addSimbol(token.getStr(), tipo);
 
 		while (true) {
@@ -313,7 +314,9 @@ public class Parser {
 		if (!simbolstable.checkSimbol(id)) {
         		throw new SyntaxException("Variável '" + id + "' usada, mas não foi declarada.");
     		}
-
+		// Recupera o símbolo da variável
+    		Simbol simbol = simbolstable.getSimbol(id);
+		
     		//Marca a variável como usada
     		simbol.markAsUsed(id);
 		
@@ -420,8 +423,8 @@ public class Parser {
 	}
 
 	public void VariaveisNaoUtilizadas() {
-    		for (String id : simbolstable.getSimbol()) {
-        		if (!simbol.wasUsed(id)) {
+    		for (Simbol simbol : simbolstable.getSimbols()) {
+        		if (!simbol.wasUsed()) {
             			System.out.println("Warning: Variável '" + id + "' foi declarada, mas não foi utilizada.");
         		}
     		}
