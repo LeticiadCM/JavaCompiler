@@ -6,7 +6,7 @@ import java.util.Map;
 public class SimbolsTable {
     private Map<String, Simbol> table;
 
-    public TabelaDeSimbolos() {
+    public SimbolsTable() {
         table = new HashMap<>();
     }
 
@@ -33,11 +33,11 @@ public class SimbolsTable {
     //Avisos de variáveis não utilizadas ou não inicializadas
     public void checkWarnings() {
         for (Simbol simbol : table.values()) {
-            if (!simbol.isUtilizado()) {
-                System.out.println("Aviso: Variável '" + simbolo.getNome() + "' declarada, mas não utilizada.");
+            if (!simbol.wasUsed()) {
+                System.out.println("Aviso: Variável '" + simbolo.getName() + "' declarada, mas não utilizada.");
             }
-            if (!simbolo.isInicializado()) {
-                System.out.println("Aviso: Variável '" + simbolo.getNome() + "' usada sem valor inicial.");
+            if (!simbolo.wasInitialized()) {
+                System.out.println("Aviso: Variável '" + simbolo.getName() + "' usada sem valor inicial.");
             }
         }
     }
