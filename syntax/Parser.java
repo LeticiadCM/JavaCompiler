@@ -19,6 +19,7 @@ public class Parser {
 	
 	public Parser(Analyzer scanner) {
 		this.scanner = scanner;
+		this.simbolstable = new SimbolsTable();
 	}
 	
 	public void PROG() {
@@ -72,8 +73,8 @@ public class Parser {
             		throw new SyntaxException("Identificador esperado após 'tipo', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
         	}
 
-		//Armazenar a variável e o tipo na tabela de símbolos
-		Simbol simbol = new Simbol(token.getStr(), tipo);
+		//Armazena a variável e o tipo na tabela de símbolos
+		simbol = new Simbol(token.getStr(), tipo);
     		simbolstable.addSimbol(token.getStr(), tipo);
 
 		while (true) {
@@ -108,20 +109,29 @@ public class Parser {
     	}
 	
     	public void Cmd() {
-	        if (token.getType() == Token.RW) {
-	            switch (token.getStr()) {
-	                case "leia":
-	                    CmdLeitura();
-	                    break;
-	                case "escreva":
-	                    CmdEscrita();
-	                    break;
-	                case "se":
-	                    CmdIf();
-	                    break;
-	                default:
-	                    throw new SyntaxException("Comando inválido: " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
-	            }
+		if (token.getType() == Token.RW) {
+			switch (token.getStr()) {
+				case "leia":
+					CmdLeitura();
+					break;
+	                	case "escreva":
+	                    		CmdEscrita();
+	                    		break;
+	                	case "se":
+	                    		CmdIfElse();
+	                    		break;
+				case "enquanto":
+				    	CmdWhile();
+					break;  // Correção: faltava tratar o "enquanto" no bloco Cmd
+				case "for":
+					CmdFor();  // Correção: faltava tratar o "for"
+					break;
+				case "repeat":
+					CmdRepeat();  // Correção: faltava tratar o "repeat"
+					break;
+	                	default:
+	                    		throw new SyntaxException("Comando inválido: " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+	            	}
 	        } else if (token.getType() == Token.ID) {
 	            CmdExpr();
 	        } else {
@@ -147,7 +157,7 @@ public class Parser {
 	        token = scanner.nextToken();
 		checkTokenNull();
 		
-	        if (token == !token.getStr().equals(")")) {
+	        if (!token.getStr().equals(")")) {
 	            throw new SyntaxException("')' esperado após identificador, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
 	        }
 
@@ -266,21 +276,24 @@ public class Parser {
 	public void CmdFor() {
     		token = scanner.nextToken();
     		checkTokenNull();
-    		if (token.getType() != Token.PON || !token.getStr().equals("(")) {
+    		if (!token.getStr().equals("(")) {
         		throw new SyntaxException("'(' esperado após 'for', encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
     		}
-
-    		CmdExpr();  // Atribuição inicial
+		
+		//Atribuição inicial
+    		CmdExpr();
     		if (!token.getStr().equals(";")) {
         		throw new SyntaxException("';' esperado após atribuição, encontrei " + token.getStr());
     		}
 
-    		Expr();  // Condição de continuação
+		//Condição de continuação
+    		Expr();  
     		if (!token.getStr().equals(";")) {
         		throw new SyntaxException("';' esperado após expressão, encontrei " + token.getStr());
     		}
 
-    		CmdExpr();  // Incremento ou decremento
+		//Incremento ou decremento
+    		CmdExpr();  
     		if (!token.getStr().equals(")")) {
         		throw new SyntaxException("')' esperado, encontrei " + token.getStr());
     		}
@@ -318,7 +331,7 @@ public class Parser {
     		Simbol simbol = simbolstable.getSimbol(id);
 		
     		//Marca a variável como usada
-    		simbol.markAsUsed(id);
+    		simbol.markAsUsed();
 		
     		token = scanner.nextToken();
 		checkTokenNull();
@@ -336,7 +349,7 @@ public class Parser {
     		}
 
 		//Marca a variável como inicializada
-    		simbol.markAsInicialized(id);
+    		simbol.markAsInicialized();
 		
     		token = scanner.nextToken();
 		checkTokenNull();
@@ -347,58 +360,117 @@ public class Parser {
 	}
 
 	public void Expr() {
-		token = scanner.nextToken();
-    		checkTokenNull();
+		String tipoTermo = Termo();
+		String tipoExpr = tipoTermo;
+		
+		while (token.getType() == Token.OP && (token.getStr().equals("+") || token.getStr().equals("-")) ) {
+        		String operador = token.getStr();
+			token = scanner.nextToken();
+			checkTokenNull();
+			
+        		String tipoProximoTermo = Termo();
+			
+			//Verifica a compatibilidade de tipos e determina o tipo resultante
+			if (tipoExpr.equals("string") || tipoProximoTermo.equals("string")) {
+            			if (operador.equals("+")) {
+                			tipoExpr = "string";
+            			} else {
+                			throw new SemanticException("Operador '" + operador + "' não suportado para tipo 'string' na linha " + scanner.getLine());
+            			}
+        		} else if (tipoExpr.equals("real") || tipoProximoTermo.equals("real")) {
+            			tipoExpr = "real";
+        		} else {
+            			tipoExpr = "int";
+        		}
+    		}
 
     		if (token.getType() == Token.ID) {
-        	String id = token.getStr();
+        		String id = token.getStr();
 
-        		if (!simbol.wasInitialized(id)) {
-            			System.out.println("Warning: Variável '" + id + "' usada sem valor inicial.");
+			//Verifica se a variável foi declarada
+        		if (!simbolstable.checkSimbol(id)) {
+            			throw new SemanticException("Variável '" + id + "' usada mas não declarada na linha " + scanner.getLine());
         		}
+			Simbol simbol = simbolstable.getSimbol(id);
 
+			//Verifica se a variável foi inicializada
+        		if (!simbol.wasInitialized()) {
+            			System.out.println("Warning: Variável '" + id + "' usada sem valor inicial na linha " + scanner.getLine());
+        		}
+			
         		simbol.markAsUsed(id);
+			tipoExpr = simbol.getType();
+			token = scanner.nextToken();
         		return simbol.getType(id);
-		}
-    		Termo();
-    		while (token.getType() == Token.OP && (token.getStr().equals("+") || token.getStr().equals("-")) ) {
-        		token = scanner.nextToken();
 			checkTokenNull();
-        		Termo();
-    		}
+		}
+    		
+		return tipoExpr;    		
 	}
 
 	public void Termo() {
-    		Fator();
+    		String tipoFator = Fator();
+    		String tipoTermo = tipoFator;
     		while (token.getType() == Token.OP && (token.getStr().equals("*") || token.getStr().equals("/")) ) {
-        		token = scanner.nextToken();
+        		String operador = token.getStr();
+			token = scanner.nextToken();
 			checkTokenNull();
-        		Fator();
+        		String tipoProximoFator = Fator();
+
+			if (tipoTermo.equals("string") || tipoProximoFator.equals("string")) {
+            			throw new SemanticException("Operador '" + operador + "' não suportado para tipo 'string' na linha " + scanner.getLine());
+        		} else if (tipoTermo.equals("real") || tipoProximoFator.equals("real")) {
+            			tipoTermo = "real";
+        		} else {
+            			tipoTermo = "int";
+			}
     		}
+		return tipoTermo;
 	}
 
 	public void Fator() {
-    		if (token == null) {
-        		throw new SyntaxException("Fator esperado, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
-    		}
-
-    		if (token.getType() == Token.NUM || token.getType() == Token.ID) {
-        		token = scanner.nextToken();
-			checkTokenNull();
-			
-    		} else if (token.getType() == Token.PON && token.getStr().equals("(")) {
-        		token = scanner.nextToken();
-			checkTokenNull();
-			
-        		Expr();
-        		if (token.getType() != Token.PON || !token.getStr().equals(")")) {
-            			throw new SyntaxException(") esperado após expressão, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+		String tipoFator = "";
+		if (token.getType() == Token.NUM) {
+        		String valor = token.getStr();
+        		if (valor.contains(".")) {
+            			tipoFator = "real";
+        		} else {
+            			tipoFator = "int";
         		}
         		token = scanner.nextToken();
-			checkTokenNull();
+        		checkTokenNull();
+    		} else if (token.getType() == Token.ID) {
+        		String id = token.getStr();
+
+        		//Verifica se a variável foi declarada
+        		if (!simbolstable.checkSimbol(id)) {
+            			throw new SemanticException("Variável '" + id + "' usada mas não declarada na linha " + scanner.getLine());
+        		}
+
+        		Simbol simbol = simbolstable.getSimbol(id);
+
+        		//Verifica se a variável foi inicializada
+        		if (!simbol.wasInitialized()) {
+            			System.out.println("Warning: Variável '" + id + "' usada sem valor inicial na linha " + scanner.getLine());
+        		}
+
+        		simbol.markAsUsed();
+        		tipoFator = simbol.getType();
+        		token = scanner.nextToken();
+        		checkTokenNull();			
+    		} else if (token.getType() == Token.PON && token.getStr().equals("(")) {
+        		token = scanner.nextToken();
+        		checkTokenNull();
+        		tipoFator = Expr(); // Avalia a expressão dentro dos parênteses
+        		if (token.getType() != Token.PON || !token.getStr().equals(")")) {
+            			throw new SyntaxException("')' esperado após expressão na linha " + scanner.getLine());
+        		}
+        		token = scanner.nextToken();
+        		checkTokenNull();
     		} else {
-        		throw new SyntaxException("Número, identificador ou expressão entre parênteses esperado, encontrei " + token.getStr() + " linha " + scanner.getLine() + " coluna " + scanner.getColumn());
+        		throw new SyntaxException("Número, identificador ou expressão entre parênteses esperado, encontrei '" + token.getStr() + "' na linha " + scanner.getLine());
     		}
+    		return tipoFator;
 	}
 
 	public void Texto() {
